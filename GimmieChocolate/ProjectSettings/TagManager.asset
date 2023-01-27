@@ -11,9 +11,9 @@ TagManager:
   - 
   - Water
   - UI
+  - Player
   - Background
   - Floor
-  - Player
   - 
   - 
   - 
@@ -46,4 +46,7 @@ TagManager:
     locked: 0
   - name: Floor
     uniqueID: 3036049299
+    locked: 0
+  - name: Player
+    uniqueID: 2009148177
     locked: 0
