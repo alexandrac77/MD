@@ -5,15 +5,20 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     private Rigidbody2D rb;
+    private BoxCollider2D collision;
     private Animator animator;
     private SpriteRenderer sprite;
     private float xDirection = 0f;
     [SerializeField]private float speed = 4f;
     [SerializeField]private float jumpVel = 7f;
+    [SerializeField] private LayerMask ground;
     
+    private enum AnimationState { idle, running, jumping, death}
+
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        collision = GetComponent<BoxCollider2D>();
         animator = GetComponent<Animator>();
         sprite = GetComponent<SpriteRenderer>();
         
@@ -22,9 +27,9 @@ public class PlayerMovement : MonoBehaviour
     private void Update()
     {
         xDirection = Input.GetAxisRaw("Horizontal");
-        rb.velocity = new Vector2(xDirection * speed, rb.velocity.y); // left & right movement. if xDirection is negative we move opposite direction
+        rb.velocity = new Vector2(xDirection * speed, rb.velocity.y); // left & right movement.
 
-        if (Input.GetButtonDown("Jump"))
+        if (Input.GetButtonDown("Jump") && GroundCheck())
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpVel);
         }
@@ -34,21 +39,37 @@ public class PlayerMovement : MonoBehaviour
 
     private void ChangeAnimationState()
     {
+        AnimationState state;
+
         // change animation state.
         if (xDirection > 0f) // moving right.
         {
-            animator.SetBool("isRunning", true);
+            state = AnimationState.running;
             sprite.flipX = false;
         }
         else if (xDirection < 0f) // moving left.
         {
-            animator.SetBool("isRunning", true);
+            state = AnimationState.running;
             // Make character face opposite direction.
             sprite.flipX = true;
         }
         else // idle
         {
-            animator.SetBool("isRunning", false);
+            state = AnimationState.idle;
         }
+
+        // jump animation set seperately so the character won't run or idle in mid-air.
+        if(rb.velocity.y > 0.1f)
+        {
+            state = AnimationState.jumping;
+        }
+
+        // cast enum to int so it can be used by animator.
+        animator.SetInteger("state",(int)state);
+    }
+
+    private bool GroundCheck()
+    {
+        return Physics2D.BoxCast(collision.bounds.center, collision.bounds.size, 0f, Vector2.down, .1f, ground);
     }
 }
